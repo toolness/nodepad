@@ -43,7 +43,7 @@ function rmpath(pathname) {
 
 function testRepo(repo) {
   repo.putFile(
-    'bar.txt', 'hai3u',
+    'bar.txt', 'hai2u',
     function(err) { assert.equal(err, null, "putFile() works"); }
   );
 
@@ -57,9 +57,22 @@ function testRepo(repo) {
       );
     });
 
+  repo.getFile(
+    'bar.txt',
+    function(err, data) {
+      assert.ifError(err);
+      assert.equal(data, 'hai2u',
+                   "getFile() on existing file returns contents");
+    });
+
+  repo.putFile(
+    'bar.txt', 'hai2u',
+    function(err) { assert.equal(err, null, "putFile() works on no-op"); }
+  );
+
   repo.putFile(
     'bar.txt', 'hai3u',
-    function(err) { assert.equal(err, null, "putFile() works on no-op"); }
+    function(err) { assert.equal(err, null, "putFile() works on change"); }
   );
 
   repo.getFile(
@@ -67,7 +80,7 @@ function testRepo(repo) {
     function(err, data) {
       assert.ifError(err);
       assert.equal(data, 'hai3u',
-                   "getFile() on existent file returns contents");
+                   "getFile() on changed file returns contents");
     });
 }
 
