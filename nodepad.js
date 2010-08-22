@@ -3,6 +3,7 @@ var fs = require('fs');
 var path = require('path');
 
 const NOTHING_TO_COMMIT = /nothing to commit \(working directory clean\)\s$/;
+const FILE_NOT_FOUND = /^ENOENT/;
 
 function Serializer(target) {
   var inUse = false;
@@ -35,9 +36,17 @@ function Serializer(target) {
   };
 }
 
-function GitRepo(repoPath) {
+var GitRepo = exports.GitRepo = function GitRepo(repoPath) {
   function getFile(filename, cb) {
-    fs.readFile(path.join(repoPath, filename), 'utf8', cb);
+    function onRead(err, data) {
+      if (err && err.message && FILE_NOT_FOUND.test(err.message))
+        cb({message: "file not found",
+            filename: filename});
+      else
+        cb.apply(this, arguments);
+    }
+
+    fs.readFile(path.join(repoPath, filename), 'utf8', onRead);
   };
 
   function putFile(filename, data, cb) {
@@ -81,4 +90,4 @@ function GitRepo(repoPath) {
 
   this.getFile = serializer.wrap(getFile);
   this.putFile = serializer.wrap(putFile);
-}
+};
