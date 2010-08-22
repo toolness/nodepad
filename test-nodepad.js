@@ -19,7 +19,7 @@ function addAssertMethod(name) {
 for (name in origAssert)
   addAssertMethod(name);
 
-function rmpath(pathname) {
+function rmpathSync(pathname) {
   var filenames = [];
   try {
     filenames = fs.readdirSync(pathname);
@@ -33,7 +33,7 @@ function rmpath(pathname) {
 
   filenames.forEach(
     function(filename) {
-      rmpath(path.join(pathname, filename));
+      rmpathSync(path.join(pathname, filename));
     });
 
   try {
@@ -85,7 +85,7 @@ function testRepo(repo) {
 }
 
 function cleanup() {
-  rmpath('test-repo');
+  rmpathSync('test-repo');
 }
 
 cleanup();
