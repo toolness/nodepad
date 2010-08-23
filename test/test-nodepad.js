@@ -3,7 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var origAssert = require('assert');
 
-var nodepad = require('./nodepad');
+var nodepad = require('../nodepad');
 
 var assert = {};
 
