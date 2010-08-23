@@ -1,47 +1,10 @@
-var child_process = require('child_process');
-var fs = require('fs');
-var path = require('path');
-var origAssert = require('assert');
-
+var testing = require('./testing');
+var assert = testing.assert;
 var nodepad = require('../nodepad');
 
-var assert = {};
+function testRepo(repoName) {
+  var repo = new nodepad.GitRepo(repoName);
 
-function addAssertMethod(name) {
-  assert[name] = function() {
-    origAssert[name].apply(origAssert, arguments);
-    var maybeMsg = arguments[arguments.length-1];
-    if (typeof(maybeMsg) == "string")
-      console.log("[ok] " + maybeMsg);
-  };
-};
-
-for (name in origAssert)
-  addAssertMethod(name);
-
-function rmpathSync(pathname) {
-  var filenames = [];
-  try {
-    filenames = fs.readdirSync(pathname);
-  } catch (e) {
-    // Either it doesn't exist or it's a file.
-    // If it's a file, try deleting it.
-    try {
-      fs.unlinkSync(pathname);
-    } catch (e) {}
-  }
-
-  filenames.forEach(
-    function(filename) {
-      rmpathSync(path.join(pathname, filename));
-    });
-
-  try {
-    fs.rmdirSync(pathname);
-  } catch (e) {}
-}
-
-function testRepo(repo) {
   repo.putFile(
     'bar.txt', 'hai2u',
     function(err) { assert.equal(err, null, "putFile() works"); }
@@ -84,21 +47,4 @@ function testRepo(repo) {
     });
 }
 
-function cleanup() {
-  rmpathSync('test-repo');
-}
-
-cleanup();
-process.on('exit', cleanup);
-
-fs.mkdirSync('test-repo', 0755);
-
-var git = child_process.spawn('git', ['init'], {cwd: 'test-repo'});
-git.on(
-  'exit',
-  function(code) {
-    if (code != 0)
-      throw new Error('git init failed.');
-    var repo = new nodepad.GitRepo('test-repo');
-    testRepo(repo);
-  });
+testing.withGitRepo('nodepad-test-repo', testRepo);
