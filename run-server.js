@@ -1,5 +1,5 @@
 var nodepad = require('./nodepad');
-var server = require('./server');
+var server = require('./nodepad/server');
 
 if (process.argv.length < 4) {
   console.log('usage: ' + process.argv[0] + ' ' + 
