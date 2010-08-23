@@ -43,13 +43,16 @@ exports.makeRequestHandler = function makeRequestHandler(git) {
               else
                 respondWith500(err);
             } else {
-              writeHead(200, {'Content-Type': 'text/plain'});
-              response.end(data);
+              var byteLength = Buffer.byteLength(data, 'utf8');
+              writeHead(200, {'Content-Type': 'text/plain',
+                              'Content-Length': byteLength});
+              response.end(data, 'utf8');
             }
           });
       else if (request.method == 'PUT') {
         var chunks = [];
         var length = 0;
+        request.setEncoding('utf8');
         request.on(
           'data',
           function(chunk) {

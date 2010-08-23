@@ -53,7 +53,7 @@ var tests = [
   function putIntoBin() {
     var localhost = http.createClient(PORT);
     var req = localhost.request('PUT', '/foo');
-    req.write('blop');
+    req.write('blop\u2026', 'utf8');
     req.end();
     req.on('response',
            function(response) {
@@ -71,7 +71,7 @@ var tests = [
              response.setEncoding('utf8');
              response.on('data',
                          function(chunk) {
-                           assert.equal(chunk, 'blop');
+                           assert.equal(chunk, 'blop\u2026');
                            nextTest();
                          });
            });
