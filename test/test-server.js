@@ -40,6 +40,21 @@ function nextTest() {
 }
 
 var tests = [
+  function putMassiveEntity() {
+    var localhost = http.createClient(PORT);
+    var req = localhost.request('PUT', '/foo');
+    var filler = '1234567890';
+    var max = Math.ceil(server.MAX_REQUEST_BODY_SIZE / filler.length);
+    for (var i = 0; i < max; i++)
+      req.write(filler);
+    req.end();
+    req.on('response',
+           function(response) {
+             assert.equal(response.statusCode, 413);
+             nextTest();
+           });
+    
+  },
   function getNonexistentBin() {
     var localhost = http.createClient(PORT);
     var req = localhost.request('GET', '/foo');
@@ -102,21 +117,6 @@ var tests = [
              assert.equal(response.statusCode, 404);
              nextTest();
            });
-  },
-  function putMassiveEntity() {
-    var localhost = http.createClient(PORT);
-    var req = localhost.request('PUT', '/foo');
-    var filler = '1234567890';
-    var max = Math.ceil(server.MAX_REQUEST_BODY_SIZE / filler.length);
-    for (var i = 0; i < max; i++)
-      req.write(filler);
-    req.end();
-    req.on('response',
-           function(response) {
-             assert.equal(response.statusCode, 413);
-             nextTest();
-           });
-    
   }
 ];
 

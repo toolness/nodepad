@@ -60,6 +60,7 @@ exports.makeRequestHandler = function makeRequestHandler(git) {
               chunks.push(chunk);
               length += chunk.length;
             } else {
+              request.removeAllListeners('end');
               writeHead(413, {'Content-Type': 'text/plain'});
               response.end("Request entity too large.");
             }
