@@ -37,6 +37,12 @@ function Serializer(target) {
 }
 
 var GitRepo = exports.GitRepo = function GitRepo(repoPath) {
+  // If the directory isn't a git repo, this will raise an
+  // error. This is just a safety measure done to make sure
+  // we don't start committing stuff to a parent repo or
+  // something.
+  fs.statSync(path.join(repoPath, '.git'));
+
   function getFile(filename, cb) {
     function onRead(err, data) {
       if (err && err.message && FILE_NOT_FOUND.test(err.message))
