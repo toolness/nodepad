@@ -1,5 +1,7 @@
 const PAD = /^\/([A-Za-z0-9_\-]+)$/;
 
+const MAX_REQUEST_BODY_SIZE = exports.MAX_REQUEST_BODY_SIZE = 65536;
+
 exports.makeRequestHandler = function makeRequestHandler(git) {
   return function handleRequest(request, response) {
     function writeHead(status, extraHeaders) {
@@ -47,8 +49,18 @@ exports.makeRequestHandler = function makeRequestHandler(git) {
           });
       else if (request.method == 'PUT') {
         var chunks = [];
-        request.on('data',
-                   function(chunk) { chunks.push(chunk); });
+        var length = 0;
+        request.on(
+          'data',
+          function(chunk) {
+            if (length + chunk.length <= MAX_REQUEST_BODY_SIZE) {
+              chunks.push(chunk);
+              length += chunk.length;
+            } else {
+              writeHead(413, {'Content-Type': 'text/plain'});
+              response.end("Request entity too large.");
+            }
+          });
         request.on(
           'end',
           function() {
