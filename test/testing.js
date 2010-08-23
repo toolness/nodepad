@@ -1,21 +1,7 @@
 var path = require('path');
 var fs = require('fs');
 var child_process = require('child_process');
-var origAssert = require('assert');
-
-var assert = exports.assert = {};
-
-function addAssertMethod(name) {
-  assert[name] = function() {
-    origAssert[name].apply(origAssert, arguments);
-    var maybeMsg = arguments[arguments.length-1];
-    if (typeof(maybeMsg) == "string")
-      console.log("[ok] " + maybeMsg);
-  };
-};
-
-for (name in origAssert)
-  addAssertMethod(name);
+var assert = require('assert');
 
 var rmpathSync = exports.rmpathSync = function rmpathSync(pathname) {
   var filenames = [];
@@ -40,12 +26,52 @@ var rmpathSync = exports.rmpathSync = function rmpathSync(pathname) {
 };
 
 exports.withGitRepo = function withGitRepo(repoName, testFunc) {
+  var myAssert = {};
+  var numLeft = 0;
+
+  function addAssertMethod(name) {
+    myAssert[name] = function() {
+      if (numLeft == 0)
+        throw new Error("test.assert." + name +
+                        "() called but none expected!");
+      assert[name].apply(assert, arguments);
+      var maybeMsg = arguments[arguments.length-1];
+      if (typeof(maybeMsg) == "string")
+        console.log("[ok] " + maybeMsg);
+    };
+  };
+
+  for (name in assert)
+    addAssertMethod(name);
+
   function cleanup() {
     rmpathSync(repoName);
   }
 
+  function onTimeout() {
+    cleanup();
+    throw new Error("FAIL: Timeout!");
+  }
+
+  var timeout = setTimeout(onTimeout, 5000);
+
+  var test = {
+    assert: myAssert,
+    done: function() {
+      numLeft--;
+      if (numLeft == 0) {
+        clearTimeout(timeout);
+        cleanup();
+      }
+      if (numLeft < 0)
+        throw new Error("test.done() called but none expected!");
+    },
+    expect: function(num) {
+      numLeft = num;
+    }
+  };
+
   cleanup();
-  process.on('exit', cleanup);
 
   fs.mkdirSync(repoName, 0755);
 
@@ -54,6 +80,6 @@ exports.withGitRepo = function withGitRepo(repoName, testFunc) {
          function(code) {
            if (code != 0)
              throw new Error('git init failed.');
-           testFunc(repoName);
+           testFunc(test, repoName);
          });
 };
