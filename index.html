@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>hi</title>
+<p>Hello.</p>
+<script>
+const BASE_HREF = 'http://localhost:8001/';
+
+function put(bin, data) {
+  var req = new XMLHttpRequest();
+  req.open('PUT', BASE_HREF + bin);
+  req.onload = function() {
+    console.log(req.responseText);
+  }
+  req.onerror = function() {
+    console.log('error: ' + req.status + ' ' + req.responseText);
+  }
+  req.send(data);
+}
+
+function get(bin) {
+  var req = new XMLHttpRequest();
+  req.open('GET', BASE_HREF + bin);
+  req.onload = function() {
+    console.log(req.responseText);
+  }
+  req.onerror = function() {
+    console.log('error: ' + req.status + ' ' + req.responseText);
+  }
+  req.send(null);
+}
+</script>
